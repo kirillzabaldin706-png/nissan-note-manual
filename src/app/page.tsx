@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import {
   ArrowRight,
   Clock,
@@ -11,9 +12,21 @@ import {
 } from "lucide-react";
 import { Header } from "@/components/layout/header";
 import { Sidebar } from "@/components/layout/sidebar";
-import { CarViewer } from "@/components/3d/car-viewer";
 import { sections, sampleProcedure } from "@/data/sections";
 import { cn } from "@/lib/utils";
+
+// 3D must be loaded only on the client (Three.js does not work on server)
+const CarViewer = dynamic(
+  () => import("@/components/3d/car-viewer").then((m) => m.CarViewer),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-full w-full items-center justify-center bg-zinc-100 dark:bg-zinc-900">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-600 border-t-[#c3002f]" />
+      </div>
+    ),
+  }
+);
 
 export default function HomePage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
