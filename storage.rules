@@ -1,0 +1,28 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // 3D-модели (.glb / .gltf) — читать всем, загружать только админам
+    match /models/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null
+                   && request.auth.token.admin == true
+                   && request.resource.size < 50 * 1024 * 1024  // макс 50 МБ
+                   && request.resource.contentType.matches('model/.*|application/octet-stream');
+    }
+
+    // Временные / служебные файлы (если понадобятся)
+    match /uploads/{userId}/{allPaths=**} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow write: if request.auth != null
+                   && request.auth.uid == userId
+                   && request.resource.size < 10 * 1024 * 1024;
+    }
+
+    // Всё остальное — запрещено
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

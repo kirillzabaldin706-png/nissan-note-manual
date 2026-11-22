@@ -1,0 +1,90 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===== Вспомогательные функции =====
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+             request.auth.token.admin == true;
+      // Альтернатива: хранить список админов в коллекции
+      // return isAuthenticated() &&
+      //        exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // ===== Разделы мануала (sections) =====
+    // Читать может любой, писать — только админ
+
+    match /sections/{sectionId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ===== Процедуры ремонта (procedures) =====
+
+    match /procedures/{procedureId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ===== Медиа (ссылки на imgbb и 3D-модели) =====
+
+    match /media/{mediaId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ===== Инструменты и моменты затяжки (можно хранить внутри procedures,
+    // но если отдельные коллекции) =====
+
+    match /tools/{toolId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /torqueSpecs/{specId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ===== Пользовательские данные =====
+
+    // Закладки — только свой пользователь
+    match /bookmarks/{bookmarkId} {
+      allow read, write: if isOwner(resource.data.userId)
+                         || (request.method == 'create' && isOwner(request.resource.data.userId));
+    }
+
+    // История просмотров
+    match /history/{historyId} {
+      allow read, write: if isOwner(resource.data.userId)
+                         || (request.method == 'create' && isOwner(request.resource.data.userId));
+    }
+
+    // Профиль пользователя
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId);
+    }
+
+    // Список админов (только чтение для проверки, запись — через консоль)
+    match /admins/{adminId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // только через Firebase Console / Admin SDK
+    }
+
+    // ===== Всё остальное — запрещено =====
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
