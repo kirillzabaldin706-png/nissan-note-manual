@@ -1,8 +1,8 @@
 "use client";
 
-import { use, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { useParams, notFound } from "next/navigation";
 import {
   ArrowLeft,
   Clock,
@@ -18,19 +18,16 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { sections, sampleProcedure } from "@/data/sections";
 import { cn } from "@/lib/utils";
 
-export default function ProcedurePage({
-  params,
-}: {
-  params: Promise<{ slug: string; procedure: string }>;
-}) {
-  const { slug, procedure: procedureSlug } = use(params);
+export default function ProcedurePage() {
+  const params = useParams();
+  const slug = params.slug as string;
+  const procedureSlug = params.procedure as string;
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [checked, setChecked] = useState<Record<string, boolean>>({});
 
   const section = sections.find((s) => s.slug === slug);
   if (!section) notFound();
 
-  // Demo: only one full procedure
   const procedure =
     procedureSlug === sampleProcedure.slug ? sampleProcedure : null;
   if (!procedure) notFound();
@@ -46,7 +43,6 @@ export default function ProcedurePage({
         <Header onMenuClick={() => setSidebarOpen(true)} />
 
         <main className="flex-1">
-          {/* Header */}
           <div className="border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950">
             <div className="mx-auto max-w-4xl px-4 py-8 lg:px-8">
               <Link
@@ -174,7 +170,7 @@ export default function ProcedurePage({
               </div>
             </section>
 
-            {/* Videos placeholder */}
+            {/* Videos */}
             <section>
               <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
                 <Play className="h-5 w-5 text-[#c3002f]" />

@@ -1,25 +1,23 @@
 "use client";
 
-import { use, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { ArrowLeft, ArrowRight, Clock, Wrench } from "lucide-react";
+import { useParams, notFound } from "next/navigation";
+import { ArrowLeft, ArrowRight, Clock } from "lucide-react";
 import { Header } from "@/components/layout/header";
 import { Sidebar } from "@/components/layout/sidebar";
 import { sections, sampleProcedure } from "@/data/sections";
 
-export default function SectionPage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
-  const { slug } = use(params);
+export default function SectionPage() {
+  const params = useParams();
+  const slug = params.slug as string;
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const section = sections.find((s) => s.slug === slug);
-  if (!section) notFound();
+  if (!section) {
+    notFound();
+  }
 
-  // For demo we only have one full procedure under engine
   const procedures =
     section.slug === "engine"
       ? [sampleProcedure]
@@ -30,7 +28,8 @@ export default function SectionPage({
             titleRu: "Процедуры скоро появятся",
             difficulty: "medium" as const,
             estimatedTime: "—",
-            description: "Этот раздел находится в разработке. Контент будет добавлен через админ-панель.",
+            description:
+              "Этот раздел находится в разработке. Контент будет добавлен через админ-панель.",
           },
         ];
 
